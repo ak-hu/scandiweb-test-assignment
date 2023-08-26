@@ -1,12 +1,13 @@
 <?php
 class Product {
     private $connection;
-    private $tableName = "products"; // Имя таблицы в базе данных
+    private $tableName = "products"; 
 
     public $id;
     public $sku;
     public $name;
     public $price;
+    public $description;
 
     public function __construct($db) {
         $this->connection = $db;
@@ -15,6 +16,11 @@ class Product {
     public function getAllProducts() {
         $query = "SELECT * FROM " . $this->tableName;
         $result = $this->connection->query($query);
+
+        if (!$result) {
+            echo "Error: " . $this->connection->error; // Вывод ошибки для отладки
+            return []; // Вернем пустой массив, чтобы избежать дополнительных ошибок
+        }
 
         $products = [];
         while ($row = $result->fetch_assoc()) {
