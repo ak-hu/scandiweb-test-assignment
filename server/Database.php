@@ -1,24 +1,25 @@
 <?php
-  $db_host = 'localhost';
-  $db_user = 'root';
-  $db_password = 'root';
-  $db_db = 'scandiweb_products';
- 
-  $mysqli = @new mysqli(
-    $db_host,
-    $db_user,
-    $db_password,
-    $db_db
-  );
-	
-  if ($mysqli->connect_error) {
-    echo 'Errno: '.$mysqli->connect_errno;
-    echo '<br>';
-    echo 'Error: '.$mysqli->connect_error;
-    exit();
-  }
+  class Database {
+    private $host = 'localhost';
+    private $user = 'root';
+    private $password = 'root';
+    private $dbName = 'scandiweb_products';
+    private $connection;
 
-  echo 'Success: A proper connection to MySQL was made.';
+    public function connect() {
+        $this->connection = new mysqli($this->host, $this->user, $this->password, $this->dbName);
 
-  $mysqli->close();
+        if ($this->connection->connect_error) {
+            die('Connection failed: ' . $this->connection->connect_error);
+        }
+
+        return $this->connection;
+    }
+
+    public function closeConnection() {
+        if ($this->connection) {
+            $this->connection->close();
+        }
+    }
+}
 ?>
