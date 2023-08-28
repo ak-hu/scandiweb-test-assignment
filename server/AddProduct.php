@@ -6,6 +6,7 @@ class AddProduct {
         $this->product = $product;
     }
 
+    // Метод для отображения формы добавления продукта и обработки данных из формы
     public function render() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sku = $_POST['sku'];
@@ -22,6 +23,7 @@ class AddProduct {
                 echo "Failed to add product.";
             }
         } else {
+            // Выводите форму для добавления продукта
             echo "<h1>Add Product</h1>";
             echo "<form method='post'>";
             echo "SKU: <input type='text' name='sku'><br>";
