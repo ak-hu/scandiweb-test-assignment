@@ -2,6 +2,7 @@
 class Product {
     private $connection;
     private $tableName = "products"; 
+    private $descriptionTableName = "product_attributes"; 
 
     public $id;
     public $sku;
@@ -18,16 +19,36 @@ class Product {
         $result = $this->connection->query($query);
 
         if (!$result) {
-            echo "Error: " . $this->connection->error; // Вывод ошибки для отладки
-            return []; // Вернем пустой массив, чтобы избежать дополнительных ошибок
+            echo "Error: " . $this->connection->error; 
+            return []; 
         }
 
         $products = [];
         while ($row = $result->fetch_assoc()) {
+            $product_id = $row['id'];
+            $description = $this->getProductDescription($product_id);
+        
+            // Добавим отладочный вывод
+            echo "Product ID: " . $product_id;
+            echo "Description: " . $description;
+            
+            $row['description'] = $description;
             $products[] = $row;
         }
 
         return $products;
+    }
+
+    public function getProductDescription($product_id) {
+        $query = "SELECT * FROM " . $this->descriptionTableName . " WHERE product_id = ?";
+        $stmt = $this->connection->prepare($query);
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $stmt->bind_result($description);
+        $stmt->fetch();
+        $stmt->close();
+
+        return $description;
     }
     
 
