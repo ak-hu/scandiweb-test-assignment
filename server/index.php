@@ -1,7 +1,5 @@
 <?php
     require_once 'Product.php'; 
-    require_once 'Database.php'; 
-    require_once 'ProductList.php';
     require_once 'AddProduct.php';
 
     // database connection
@@ -10,7 +8,6 @@
 
     // product objects
     $product = new Product($connection);
-    $productList = new ProductList($product);
     $addProduct = new AddProduct($product);
 
     // requests based on the requested page
