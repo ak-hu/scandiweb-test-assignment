@@ -9,6 +9,8 @@ class Product {
     public $name;
     public $price;
     public $description;
+    public $attribute;
+    public $value;
 
     public function __construct($db) {
         $this->connection = $db;
@@ -17,39 +19,39 @@ class Product {
     public function getAllProducts() {
         $query = "SELECT * FROM " . $this->tableName;
         $result = $this->connection->query($query);
-
+    
         if (!$result) {
             echo "Error: " . $this->connection->error; 
             return []; 
         }
-
+    
         $products = [];
         while ($row = $result->fetch_assoc()) {
             $product_id = $row['id'];
-            $description = $this->getProductDescription($product_id);
-        
-            // Добавим отладочный вывод
-            echo "Product ID: " . $product_id;
-            echo "Description: " . $description;
-            
-            $row['description'] = $description;
+            $descriptions = $this->getProductDescription($product_id);
+            $row['description'] = $descriptions;
             $products[] = $row;
         }
-
+    
         return $products;
     }
 
-    public function getProductDescription($product_id) {
-        $query = "SELECT * FROM " . $this->descriptionTableName . " WHERE product_id = ?";
+    public function getProductDescription($id) {
+        $query = "SELECT attribute, value FROM " . $this->descriptionTableName . " WHERE product_id = ?";
         $stmt = $this->connection->prepare($query);
-        $stmt->bind_param("i", $product_id);
+        $stmt->bind_param("i", $id);
         $stmt->execute();
-        $stmt->bind_result($description);
-        $stmt->fetch();
+        $result = $stmt->get_result();
+    
+        $descriptions = [];
+        while ($row = $result->fetch_assoc()) {
+            $descriptions[] = $row;
+        }
+    
         $stmt->close();
-
-        return $description;
-    }
+    
+        return $descriptions;
+    }    
     
 
     // Метод для сохранения продукта в базу данных
