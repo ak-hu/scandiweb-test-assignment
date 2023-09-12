@@ -4,35 +4,82 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../components/Footer";
 
 const AddProduct = () => {
-    const navigate = useNavigate();
-    const [sku, setSKU] = useState();
-    const [name, setName] = useState();
-    const [price, setPrice] = useState();
-    const [type, setType] = useState();
+    const navigate = useNavigate('');
+    const [sku, setSKU] = useState('');
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+    const [type, setType] = useState('');
 
     // DVD additional field
-    const [size, setSize] = useState();
+    const [size, setSize] = useState('');
 
     // Book additional field
-    const [weight, setWeight] = useState();
+    const [weight, setWeight] = useState('');
 
     // Furniture additional fields
-    const [height, setHeight] = useState();
-    const [width, setWidth] = useState();
-    const [length, setLength] = useState();
+    const [height, setHeight] = useState('');
+    const [width, setWidth] = useState('');
+    const [length, setLength] = useState('');
 
     const saveProduct = async (event) => {
         event.preventDefault();
-        navigate("/")
-    }
+
+        const data = {
+            sku,
+            name,
+            price,
+        };
+
+        if (type === "dvd") {
+            data.attribute = "Size";
+            data.value = size + " MB";
+        } else if (type === "book") {
+            data.attribute = "Weight";
+            data.value = weight + " Kg";
+        } else if (type === "furniture") {
+            data.attribute = "Dimension";
+            data.value = `${height}x${width}x${length} CM`;
+        }
+
+        try {
+            console.log(data)
+            const response = await fetch("http://localhost:8888/scandidev/server/api.php?endpoint=addProduct", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+
+            // Если запрос успешен, очищаем поля формы
+            setSKU("");
+            setName("");
+            setPrice("");
+            setType("");
+            setSize("");
+            setWeight("");
+            setHeight("");
+            setWidth("");
+            setLength("");
+
+            navigate("/"); 
+            console.log("Product added successfully!");
+        } catch (error) {
+            console.error("Fetch error:", error);
+        }
+    };
 
     const handlePriceChange = (event) => {
         const inputValue = event.target.value;
         // Проверяем, что введено числовое значение
         if (inputValue && !isNaN(inputValue)) {
-          // Преобразуем значение в число и форматируем с двумя десятичными знаками
-          const formattedValue = parseFloat(inputValue).toFixed(2);
-          setPrice(formattedValue);
+            // Преобразуем значение в число и форматируем с двумя десятичными знаками
+            const formattedValue = parseFloat(inputValue).toFixed(2);
+            setPrice(formattedValue);
         }
     };
 
@@ -89,7 +136,7 @@ const AddProduct = () => {
                         </select>
                     </div>
                     {type && (
-                       <h2>Product description</h2> 
+                        <h2>Product description</h2>
                     )}
 
                     {type === "dvd" && (
