@@ -1,13 +1,13 @@
 import React from 'react';
 
-const Product = ({sku, name, price, additional}) => {
+const Product = ({ product }) => {
     return (
         <div className='product'>
             <input type="checkbox" name="" id="" className='delete-checkbox'/>
-            <span>{ sku }</span>
-            <span>{ name }</span>
-            <span>{ price } $</span>
-            
+            <span>{ product.sku }</span>
+            <span>{ product.name }</span>
+            <span>{ product.price } $</span>
+            <span>{ product.description[0].attribute }: { product.description[0].value }</span>
         </div>
     );
 };
