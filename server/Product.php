@@ -52,28 +52,111 @@ class Product {
     
         return $descriptions;
     }    
-    
 
-    // Метод для сохранения продукта в базу данных
-    public function save() {
-        $query = "INSERT INTO " . $this->tableName . "
-                  SET sku=:sku, name=:name, price=:price";
-
-        $stmt = $this->connection->prepare($query);
-
-        $this->sku = htmlspecialchars(strip_tags($this->sku));
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-
-        $stmt->bindParam(":sku", $this->sku);
-        $stmt->bindParam(":name", $this->name);
-        $stmt->bindParam(":price", $this->price);
-
-        if ($stmt->execute()) {
-            return true;
-        }
+    public function save($data) {
+        $existingProductQuery = "SELECT id FROM `" . $this->tableName . "` WHERE sku = ?";
+        $stmt = $this->connection->prepare($existingProductQuery);
+        $stmt->bind_param('s', $data['sku']);
+        $stmt->execute();
+        $stmt->store_result();
         
+        if ($stmt->num_rows > 0) {
+            echo "SKU already exists";
+            return false;
+        }
+
+        $query = "INSERT INTO `" .$this->tableName. "`
+                  (`sku`, `name`, `price`, `description_id`)
+                  VALUES
+                  (?, ?, ?, NULL)";
+    
+        $stmt = $this->connection->prepare($query);
+        if (!$stmt) {
+            die('Error in query preparation: ' . $this->connection->error);
+        }
+    
+        $stmt->bind_param('sss', $data['sku'], $data['name'], $data['price']);
+    
+        if ($stmt->execute()) {
+            $product_id = $this->connection->insert_id;
+            $query = "INSERT INTO `" . $this->descriptionTableName . "`
+                          (product_id, attribute, value)
+                          VALUES
+                          (?, ?, ?)";
+        
+            $stmt = $this->connection->prepare($query);
+            $stmt->bind_param("iss", $product_id, $data['attribute'], $data['value']);
+
+            if ($stmt->execute()) {
+                $description_id = $this->connection->insert_id;
+                $query = "UPDATE `" . $this->tableName . "`
+                      SET description_id=?
+                      WHERE id=?";
+    
+                $stmt = $this->connection->prepare($query);
+                $stmt->bind_param("ii", $description_id, $product_id);
+        
+                if ($stmt->execute()) {
+                    return true;
+                } else {
+                    echo "Query execution failed: " . $stmt->error;
+                    return false;
+                }
+            } else {
+                echo "Query_2 execution failed: " . $stmt->error;
+            }
+        }
         return false;
     }
+    
+    public function massDeleteProducts($productIds) {
+        $productIdsStr = implode(',', $productIds);
+
+        $updateQuery = "UPDATE `" . $this->tableName . "`
+                        SET `description_id` = NULL
+                        WHERE `id` IN ($productIdsStr)";
+        
+        $updateStmt = $this->connection->prepare($updateQuery);
+        
+        if (!$updateStmt) {
+            die('Error in query preparation: ' . $this->connection->error);
+        }
+        
+        if (!$updateStmt->execute()) {
+            echo "Error during update: " . $updateStmt->error;
+            return false;
+        }
+        
+        $deleteQuery = "DELETE FROM " . $this->descriptionTableName . " 
+                        WHERE product_id IN ($productIdsStr)";
+        
+        $deleteStmt = $this->connection->prepare($deleteQuery);
+        
+        if (!$deleteStmt) {
+            die('Error in query preparation: ' . $this->connection->error);
+        }
+        
+        if ($deleteStmt->execute()) {
+            $finalDeleteQuery = "DELETE FROM `" . $this->tableName . "`
+                                 WHERE `id` IN ($productIdsStr)";
+            
+            $finalDeleteStmt = $this->connection->prepare($finalDeleteQuery);
+            
+            if (!$finalDeleteStmt) {
+                die('Error in query preparation: ' . $this->connection->error);
+            }
+            
+            if ($finalDeleteStmt->execute()) {
+                return true;
+            } else {
+                echo "Error during final delete: " . $finalDeleteStmt->error;
+                return false;
+            }
+        } else {
+            echo "Error during delete: " . $deleteStmt->error;
+            return false;
+        }
+    }
+       
 }
 ?>
