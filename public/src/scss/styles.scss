@@ -1,7 +1,6 @@
 @import './mixins';
 @import './variables';
 
-
 body {
     box-sizing: border-box;
     margin: 0 auto;
@@ -119,3 +118,73 @@ a {
         background-color: #000;
     }
 }
+
+$red: #e74c3c;
+$dark-red: #c0392b;
+$white: #fafafa;
+$dark: #424242;
+
+.popup {
+    position: fixed;
+    width: 25rem;
+    height: 10rem;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    background-color: $white;
+    box-shadow: 2px 2px 1rem #212121;
+    border-radius: 0.25rem;
+
+    &-message {
+        background-color: $red;
+        height: 7rem;
+        border-radius: 0.25rem 0.25rem 0 0;
+        overflow: hidden;
+        position: relative;
+        font-size: 0.9rem;
+        color: $white;
+
+        &:before {
+            content: "\2716";
+            position: absolute;
+            color: $white;
+            font-size: 10rem;
+            opacity: 0.3;
+            top: -2.5rem;
+            right: -0.5rem;
+        }
+        p {
+            padding: 0.5rem;
+            color: $white;
+        }
+    }
+
+    .action {
+        height: 3rem;
+        line-height: 3rem;
+        width: 100%;
+        position: relative;
+
+        button {
+        position: absolute;
+        right: 1rem;
+        top: 0.8rem;
+        outline: none;
+        border: 0;
+        background-color: $red;
+        width: 5rem;
+        height: 1.5rem;
+        color: $white;
+        text-transform: uppercase;
+        transition: background-color 0.2s ease-in-out;
+        border-radius: 0.25rem;
+
+        &:active {
+            background-color: $dark-red;
+        }
+        }
+    }
+}
+
+  
+  
