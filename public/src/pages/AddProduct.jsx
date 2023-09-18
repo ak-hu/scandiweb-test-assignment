@@ -1,25 +1,24 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import axios from 'axios';
+
 import Footer from "../components/Footer";
+import Popup from "../components/Popup";
 
 const AddProduct = () => {
-    const navigate = useNavigate('');
+    const navigate = useNavigate();
     const [sku, setSKU] = useState('');
     const [name, setName] = useState('');
     const [price, setPrice] = useState('');
     const [type, setType] = useState('');
-
-    // DVD additional field
     const [size, setSize] = useState('');
-
-    // Book additional field
     const [weight, setWeight] = useState('');
-
-    // Furniture additional fields
     const [height, setHeight] = useState('');
     const [width, setWidth] = useState('');
     const [length, setLength] = useState('');
+
+    const [error, setError] = useState("");
 
     const saveProduct = async (event) => {
         event.preventDefault();
@@ -38,38 +37,28 @@ const AddProduct = () => {
             data.value = weight + " Kg";
         } else if (type === "furniture") {
             data.attribute = "Dimension";
-            data.value = `${height}x${width}x${length} CM`;
+            data.value = `${height}x${width}x${length}`;
         }
 
         try {
-            console.log(data)
-            const response = await fetch("http://localhost:8888/scandidev/server/api.php?endpoint=addProduct", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(data),
-            });
+            const response = await axios.post("http://localhost:8888/scandidev/server/api.php?endpoint=addProduct", data);
 
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
+            if (response.status === 200) {
+                setSKU("");
+                setName("");
+                setPrice("");
+                setType("");
+                setSize("");
+                setWeight("");
+                setHeight("");
+                setWidth("");
+                setLength("");
+                navigate("/");
+            } else {
+                setError(response.data.message);
             }
-
-            // Если запрос успешен, очищаем поля формы
-            setSKU("");
-            setName("");
-            setPrice("");
-            setType("");
-            setSize("");
-            setWeight("");
-            setHeight("");
-            setWidth("");
-            setLength("");
-
-            navigate("/"); 
-            console.log("Product added successfully!");
-        } catch (error) {
-            console.error("Fetch error:", error);
+        } catch (e) {
+            setError("Axios error:", e);
         }
     };
 
@@ -85,12 +74,12 @@ const AddProduct = () => {
 
     return (
         <div className="container">
-            <form action="post" id="product_form" onSubmit={(event) => saveProduct(event)}>
+            <form id="product_form" onSubmit={(event) => saveProduct(event)}>
                 <div className="header">
                     <h1>Product Add</h1>
                     <div className="header--buttons">
                         <button type="submit">Save</button>
-                        <button>Cancel</button>
+                        <button onClick={() => navigate('/')}>Cancel</button>
                     </div>
                 </div>
                 <div className="content form">
@@ -140,33 +129,40 @@ const AddProduct = () => {
                     )}
 
                     {type === "dvd" && (
-                        <div className="input-wrapper">
-                            <label htmlFor="size">Size (MB)</label>
-                            <input
-                                id="size"
-                                type="number"
-                                value={size}
-                                onChange={(e) => setSize(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <>
+                            <span>Please, provide size</span>
+                            <div className="input-wrapper">
+                                <label htmlFor="size">Size (MB)</label>
+                                <input
+                                    id="size"
+                                    type="number"
+                                    value={size}
+                                    onChange={(e) => setSize(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </>
                     )}
 
                     {type === "book" && (
-                        <div className="input-wrapper">
-                            <label htmlFor="weight">Weight (KG)</label>
-                            <input
-                                id="weight"
-                                type="number"
-                                value={weight}
-                                onChange={(e) => setWeight(e.target.value)}
-                                required
-                            />
-                        </div>
+                        <>
+                            <span>Please, provide weight</span>
+                            <div className="input-wrapper">
+                                <label htmlFor="weight">Weight (KG)</label>
+                                <input
+                                    id="weight"
+                                    type="number"
+                                    value={weight}
+                                    onChange={(e) => setWeight(e.target.value)}
+                                    required
+                                />
+                            </div>
+                        </>
                     )}
 
                     {type === "furniture" && (
                         <>
+                            <span>Please, provide dimensions</span>
                             <div className="input-wrapper">
                                 <label htmlFor="height">Height (CM)</label>
                                 <input
@@ -201,6 +197,9 @@ const AddProduct = () => {
                     )}
                 </div>
             </form>
+            {error &&
+                <Popup message={error} onClose={() => setError("")} type="error" />
+            }
             <Footer />
         </div>
     );
