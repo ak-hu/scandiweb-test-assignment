@@ -7,6 +7,7 @@ body {
     bottom: 0;
     width: 90%;
     font-size: 1rem;
+    background-color: $primary_color;
 }
 
 button,
@@ -15,43 +16,53 @@ a {
 }
 
 .container {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: 10% 85% 5%;
+}
+
+.header,
+.footer {
+    &::after {
+        position: absolute;
+        content: '';
+        height: calc($base / 2.5);
+        width: 90%;
+        background-color: $secondary_color;
+    }
 }
 
 .header{
     @include flex-center;
     justify-content: space-between;
 
-
-    &--buttons{
+    &__buttons{
         display: flex;
         gap: 1rem;
+
         button{
-            padding: 5px 20px;
-            border-radius: 5px;
-            border: 1px solid #000;
+            padding: $base calc($base * 4);
+            border-radius: $base;
+            border: calc($base / 5) solid $secondary_color;
         }
     }
 
     &::after {
-        position: absolute;
-        content: '';
         top: 10%;
         left: 5%;
-        height: 2px;
-        width: 90%;
-        background-color: #000;
     }
 }
 
-.products-container{
-    flex: 1;
+.content {
+    height: 70vh;
+}
+
+.product-list__wrapper{
     display: grid;
+    gap: 1.5rem;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(3, 1fr);
-    gap: 1rem;
-    margin: 50px 0;
+    margin: calc($base * 5) 0;
+    overflow-y: auto;
 }
 
 
@@ -61,9 +72,9 @@ a {
     justify-content: center;
     flex-direction: column;
     max-width: 100%;
-    padding: 2rem 0 1.5rem 0;
-    border: 1px solid #000;
-    border-radius: 5px;
+    padding: 2.1rem 0;
+    border: calc($base / 5) solid $secondary_color;
+    border-radius: $base;
 
     .delete-checkbox {
         position: absolute;
@@ -73,20 +84,15 @@ a {
     }
 }
 
-
-.content {
-    height: 70vh;
-}
-
 .form {
     display: flex;
     align-items: flex-start;
     flex-direction: column;
     gap: 1rem;
     width: 30%;
-    margin: 25px 0;
+    margin: calc($base * 5) 0;
 
-    .input-wrapper {
+    &__input-wrapper {
         display: grid;
         grid-template-columns: 50% 50%;
         width: 100%;
@@ -98,7 +104,7 @@ a {
                 margin: 0;
             }
             &[type="number"] {
-                -moz-appearance: textfield; /* Firefox */
+                -moz-appearance: textfield; 
             }
         }
     }
@@ -109,82 +115,8 @@ a {
     text-align: center;
 
     &::after {
-        position: absolute;
-        content: '';
         top: 0%;
         left: 0%;
-        height: 2px;
         width: 100%;
-        background-color: #000;
     }
 }
-
-$red: #e74c3c;
-$dark-red: #c0392b;
-$white: #fafafa;
-$dark: #424242;
-
-.popup {
-    position: fixed;
-    width: 25rem;
-    height: 10rem;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    background-color: $white;
-    box-shadow: 2px 2px 1rem #212121;
-    border-radius: 0.25rem;
-
-    &-message {
-        background-color: $red;
-        height: 7rem;
-        border-radius: 0.25rem 0.25rem 0 0;
-        overflow: hidden;
-        position: relative;
-        font-size: 0.9rem;
-        color: $white;
-
-        &:before {
-            content: "\2716";
-            position: absolute;
-            color: $white;
-            font-size: 10rem;
-            opacity: 0.3;
-            top: -2.5rem;
-            right: -0.5rem;
-        }
-        p {
-            padding: 0.5rem;
-            color: $white;
-        }
-    }
-
-    .action {
-        height: 3rem;
-        line-height: 3rem;
-        width: 100%;
-        position: relative;
-
-        button {
-        position: absolute;
-        right: 1rem;
-        top: 0.8rem;
-        outline: none;
-        border: 0;
-        background-color: $red;
-        width: 5rem;
-        height: 1.5rem;
-        color: $white;
-        text-transform: uppercase;
-        transition: background-color 0.2s ease-in-out;
-        border-radius: 0.25rem;
-
-        &:active {
-            background-color: $dark-red;
-        }
-        }
-    }
-}
-
-  
-  
