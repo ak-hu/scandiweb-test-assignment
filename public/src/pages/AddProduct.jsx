@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-import axios from 'axios';
-
+import { apiCall } from '../utils/api.js';
+import { DVD, Book, Furniture } from "../utils/ProductClasses";
 import Footer from "../components/Footer";
-import Popup from "../components/Popup";
 
 const AddProduct = () => {
     const navigate = useNavigate();
@@ -18,72 +16,78 @@ const AddProduct = () => {
     const [width, setWidth] = useState('');
     const [length, setLength] = useState('');
 
-    const [error, setError] = useState("");
-
     const saveProduct = async (event) => {
         event.preventDefault();
 
-        const data = {
-            sku,
-            name,
-            price,
-        };
+        let product;
 
         if (type === "dvd") {
-            data.attribute = "Size";
-            data.value = size + " MB";
+            product = new DVD(sku, name, price, size);
         } else if (type === "book") {
-            data.attribute = "Weight";
-            data.value = weight + " Kg";
+            product = new Book(sku, name, price, weight);
         } else if (type === "furniture") {
-            data.attribute = "Dimension";
-            data.value = `${height}x${width}x${length}`;
+            product = new Furniture(sku, name, price, { height, width, length });
         }
 
-        try {
-            const response = await axios.post("http://localhost:8888/scandidev/server/api.php?endpoint=addProduct", data);
+        const data = {
+            sku: product.sku,
+            name: product.name,
+            price: product.price,
+            attribute: product.getAttribute(),
+            value: product.getValue()
+        };
 
-            if (response.status === 200) {
-                setSKU("");
-                setName("");
-                setPrice("");
-                setType("");
-                setSize("");
-                setWeight("");
-                setHeight("");
-                setWidth("");
-                setLength("");
-                navigate("/");
-            } else {
-                setError(response.data.message);
-            }
-        } catch (e) {
-            setError("Axios error:", e);
-        }
+        apiCall('addProduct', 'POST', data)
+            .then(response => {
+                if (response) {
+                    setSKU("");
+                    setName("");
+                    setPrice("");
+                    setType("");
+                    setSize("");
+                    setWeight("");
+                    setHeight("");
+                    setWidth("");
+                    setLength("");
+                    navigate('/');
+                } else {
+                    console.log(response.message);
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
     };
 
     const handlePriceChange = (event) => {
-        const inputValue = event.target.value;
-        // Проверяем, что введено числовое значение
-        if (inputValue && !isNaN(inputValue)) {
-            // Преобразуем значение в число и форматируем с двумя десятичными знаками
-            const formattedValue = parseFloat(inputValue).toFixed(2);
-            setPrice(formattedValue);
+        let inputValue = event.target.value;
+        inputValue = inputValue.replace(/[^\d]/g, '');
+        const length = inputValue.length;
+
+        if (length > 2) {
+            inputValue = inputValue.slice(0, length - 2) + '.' + inputValue.slice(length - 2);
+        }
+
+        if (inputValue !== '' && !isNaN(inputValue)) {
+            event.target.value = inputValue;
+            setPrice(inputValue);
+        } else {
+            setPrice('');
         }
     };
 
     return (
-        <div className="container">
-            <form id="product_form" onSubmit={(event) => saveProduct(event)}>
+        <>
+            <form id="product_form" onSubmit={(event) => saveProduct(event)} className="container">
                 <div className="header">
                     <h1>Product Add</h1>
-                    <div className="header--buttons">
+                    <div className="header__buttons">
                         <button type="submit">Save</button>
                         <button onClick={() => navigate('/')}>Cancel</button>
                     </div>
                 </div>
                 <div className="content form">
-                    <div className="input-wrapper">
+                    <div className="form__input-wrapper">
                         <label htmlFor="sku">SKU</label>
                         <input id="sku"
                             type="text"
@@ -92,7 +96,7 @@ const AddProduct = () => {
                             required
                         />
                     </div>
-                    <div className="input-wrapper">
+                    <div className="form__input-wrapper">
                         <label htmlFor="name">Name</label>
                         <input id="name"
                             type="text"
@@ -101,17 +105,16 @@ const AddProduct = () => {
                             required
                         />
                     </div>
-                    <div className="input-wrapper">
+                    <div className="form__input-wrapper">
                         <label htmlFor="price">Price ($)</label>
                         <input id="price"
                             type="text"
-                            step="0.01"
                             value={price}
-                            onChange={(event) => handlePriceChange(event)}
+                            onChange={(e) => handlePriceChange(e)}
                             required
                         />
                     </div>
-                    <div className="input-wrapper">
+                    <div className="form__input-wrapper">
                         <label htmlFor="productType">Type Switcher</label>
                         <select id="productType"
                             value={type}
@@ -124,14 +127,10 @@ const AddProduct = () => {
                             <option value="furniture">Furniture</option>
                         </select>
                     </div>
-                    {type && (
-                        <h2>Product description</h2>
-                    )}
-
                     {type === "dvd" && (
                         <>
-                            <span>Please, provide size</span>
-                            <div className="input-wrapper">
+                            <h2>Please, provide size</h2>
+                            <div className="form__input-wrapper">
                                 <label htmlFor="size">Size (MB)</label>
                                 <input
                                     id="size"
@@ -146,8 +145,8 @@ const AddProduct = () => {
 
                     {type === "book" && (
                         <>
-                            <span>Please, provide weight</span>
-                            <div className="input-wrapper">
+                            <h2>Please, provide weight</h2>
+                            <div className="form__input-wrapper">
                                 <label htmlFor="weight">Weight (KG)</label>
                                 <input
                                     id="weight"
@@ -162,8 +161,8 @@ const AddProduct = () => {
 
                     {type === "furniture" && (
                         <>
-                            <span>Please, provide dimensions</span>
-                            <div className="input-wrapper">
+                            <h2>Please, provide dimensions</h2>
+                            <div className="form__input-wrapper">
                                 <label htmlFor="height">Height (CM)</label>
                                 <input
                                     id="height"
@@ -173,7 +172,7 @@ const AddProduct = () => {
                                     required
                                 />
                             </div>
-                            <div className="input-wrapper">
+                            <div className="form__input-wrapper">
                                 <label htmlFor="width">Width (CM)</label>
                                 <input
                                     id="width"
@@ -183,7 +182,7 @@ const AddProduct = () => {
                                     required
                                 />
                             </div>
-                            <div className="input-wrapper">
+                            <div className="form__input-wrapper">
                                 <label htmlFor="length">Length (CM)</label>
                                 <input
                                     id="length"
@@ -196,12 +195,9 @@ const AddProduct = () => {
                         </>
                     )}
                 </div>
+                <Footer />
             </form>
-            {error &&
-                <Popup message={error} onClose={() => setError("")} type="error" />
-            }
-            <Footer />
-        </div>
+        </>
     );
 };
 

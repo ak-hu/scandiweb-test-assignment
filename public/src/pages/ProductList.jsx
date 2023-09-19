@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import axios from 'axios';
 
+import { apiCall } from '../utils/api.js';
 import Footer from '../components/Footer';
 import Product from '../components/Product';
-
 
 const ProductList = () => {
     const navigate = useNavigate();
@@ -12,19 +11,20 @@ const ProductList = () => {
     const [selectedProducts, setSelectedProducts] = useState([]);
 
     const handleMassDelete = () => {
-        axios.post('http://localhost:8888/scandidev/server/api.php?endpoint=massDeleteProducts', {
-            productIds: selectedProducts,
-        })
-        .then(response => {
-            if (response.status === 200) {
-                const updatedProducts = products.filter(product => !selectedProducts.includes(product.id));
-                setProducts(updatedProducts);
-                setSelectedProducts([]);
-            }
-        })
-        .catch(error => {
-            console.error('Axios error:', error);
-        });
+        apiCall('massDeleteProducts', 'POST', { productIds: selectedProducts })
+            .then(response => {
+                if (response && response.message) {
+                    setProducts(prevProducts =>
+                        prevProducts.filter(product => !selectedProducts.includes(product.id))
+                    );
+                    setSelectedProducts([]);
+                } else {
+                    console.log(response.message);
+                }
+            })
+            .catch(error => {
+                console.log(error)
+            });
     }
 
     const handleCheckboxChange = (productId, isChecked) => {
@@ -36,34 +36,36 @@ const ProductList = () => {
     }
 
     useEffect(() => {
-        axios.get('http://localhost:8888/scandidev/server/api.php?endpoint=getProducts')
-        .then(response => {
-            if (response.status === 200) {
-                setProducts(response.data);
-            } else {
-                throw new Error('Network response was not ok');
-            }
-        })
-        .catch(error => {
-            console.error('Axios error:', error);
-        });
+        apiCall('getProducts', 'GET')
+            .then(response => {
+                if (response) {
+                    setProducts(response);
+                } else {
+                    console.log(response.message);
+                }
+            })
+            .catch(error => {
+                console.log(error);
+            });
     }, []);
 
     return (
-        <div className='container'>
-            <div className='header'>
-                <h1>Product List</h1>
-                <div className='header--buttons'>
-                    <button onClick={() => navigate('/add-product')}>add</button>
-                    <button onClick={handleMassDelete}>mass delete</button>
+        <>
+            <div className='container'>
+                <div className='header'>
+                    <h1>Product List</h1>
+                    <div className='header__buttons'>
+                        <button onClick={() => navigate('/add-product')}>ADD</button>
+                        <button id='delete-product-btn' onClick={handleMassDelete}>MASS DELETE</button>
+                    </div>
                 </div>
+                <div className='content product-list__wrapper'>
+                    {products.map((product) => <Product key={product.id} product={product} onCheckboxChange={handleCheckboxChange} />
+                    )}
+                </div>
+                <Footer />
             </div>
-            <div className='content products-container'>
-                {products.map((product) => <Product key={product.id} product={product} onCheckboxChange={handleCheckboxChange}/>
-                )}
-            </div>
-            <Footer />
-        </div>
+        </>
     );
 };
 
