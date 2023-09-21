@@ -44,7 +44,7 @@ To set up the MySQL database:
 
 ## Website
 
-You can view the working application at this link: `https://test-assigment-scandi.000webhostapp.com/`.
+You can view the working application at this link: https://test-assigment-scandi.000webhostapp.com/.
 
 ## Contributing
 
